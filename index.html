@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AR Washing Machine - Hiro Marker</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+    #controlPanel {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; width: 90%; max-width: 520px; background: rgba(0,0,0,.75);
+      padding: 15px; border-radius: 15px; text-align: center; color: white;
+    }
+    #controlPanel h3 { margin: 0 0 10px 0; font-size: 18px; }
+    #speedText { margin-bottom: 10px; font-size: 16px; color: #00ffcc; }
+    button { padding: 10px 14px; margin: 4px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .speedButton { background: #2196f3; color: white; }
+    .stopButton { background: #f44336; color: white; }
+    .lidButton { background: #4caf50; color: white; }
+    button:active { transform: scale(.95); }
+  </style>
+</head>
+<body>
+  <a-scene embedded vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; antialias: true;"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
+    <a-marker preset="hiro">
+      <a-entity id="washingMachine" position="0 0.75 0" scale="0.8 0.8 0.8">
+        <a-box position="0 0 0" width="1.2" height="1.5" depth="1" color="#e6e6e6" metalness="0.2" roughness="0.6"></a-box>
+        <a-box position="0 0.5 0.51" width="1.05" height="0.25" depth="0.05" color="#333333"></a-box>
+        <a-box position="0.25 0.5 0.55" width="0.35" height="0.12" depth="0.03" color="#00ccff"
+          material="emissive:#0088aa; emissiveIntensity:0.6"></a-box>
+        <a-cylinder position="-0.3 0.5 0.57" radius="0.09" height="0.05" rotation="90 0 0" color="#cccccc"></a-cylinder>
+
+        <a-entity id="lidPivot" position="0 0.76 -0.35">
+          <a-box id="lid" position="0 0 0.35" width="1" height="0.08" depth="0.75" color="#444444" opacity="0.9"></a-box>
+          <a-box position="0 0.045 0.35" width="0.7" height="0.02" depth="0.48"
+            color="#66ccff" opacity="0.5" transparent="true"></a-box>
+        </a-entity>
+
+        <a-cylinder position="0 0.15 0" radius="0.42" height="0.65" color="#555555" metalness="0.8" roughness="0.3"></a-cylinder>
+        <a-cylinder id="drum" position="0 0.48 0" radius="0.35" height="0.08" color="#aaaaaa" metalness="0.9" roughness="0.2">
+          <a-sphere position="0.12 0.06 0" radius="0.10" color="#ff4444"></a-sphere>
+          <a-sphere position="-0.12 0.05 0.08" radius="0.09" color="#4488ff"></a-sphere>
+          <a-sphere position="0 -0.05 -0.13" radius="0.11" color="#ffee44"></a-sphere>
+        </a-cylinder>
+
+        <a-cylinder position="-0.45 -0.78 0.35" radius="0.06" height="0.1" color="#222"></a-cylinder>
+        <a-cylinder position="0.45 -0.78 0.35" radius="0.06" height="0.1" color="#222"></a-cylinder>
+        <a-cylinder position="-0.45 -0.78 -0.35" radius="0.06" height="0.1" color="#222"></a-cylinder>
+        <a-cylinder position="0.45 -0.78 -0.35" radius="0.06" height="0.1" color="#222"></a-cylinder>
+      </a-entity>
+    </a-marker>
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <div id="controlPanel">
+    <h3>🧺 AR Washing Machine</h3>
+    <div id="speedText">ความเร็วถังซัก: 0 RPM</div>
+    <button class="speedButton" onclick="setSpeed(1)">🐢 ช้า</button>
+    <button class="speedButton" onclick="setSpeed(2)">▶ ปานกลาง</button>
+    <button class="speedButton" onclick="setSpeed(3)">⚡ เร็ว</button>
+    <button class="stopButton" onclick="setSpeed(0)">⏹ หยุด</button>
+    <br>
+    <button id="lidButton" class="lidButton" onclick="toggleLid()">🔓 เปิดฝาถัง</button>
+  </div>
+
+  <script>
+    let drumSpeed = 0;
+    let drumRotation = 0;
+    let lidOpened = false;
+    let currentLidAngle = 0;
+    let targetLidAngle = 0;
+
+    function setSpeed(level) {
+      const text = document.getElementById("speedText");
+      switch(level) {
+        case 0: drumSpeed = 0; text.innerHTML = "ความเร็วถังซัก: 0 RPM"; break;
+        case 1: drumSpeed = 1; text.innerHTML = "ความเร็วถังซัก: 400 RPM"; break;
+        case 2: drumSpeed = 3; text.innerHTML = "ความเร็วถังซัก: 800 RPM"; break;
+        case 3: drumSpeed = 7; text.innerHTML = "ความเร็วถังซัก: 1200 RPM"; break;
+      }
+    }
+
+    function toggleLid() {
+      const button = document.getElementById("lidButton");
+      lidOpened = !lidOpened;
+      if (lidOpened) {
+        targetLidAngle = -105;
+        button.innerHTML = "🔒 ปิดฝาถัง";
+      } else {
+        targetLidAngle = 0;
+        button.innerHTML = "🔓 เปิดฝาถัง";
+      }
+    }
+
+    function animate() {
+      const drum = document.getElementById("drum");
+      const lidPivot = document.getElementById("lidPivot");
+
+      if (drum && drumSpeed > 0) {
+        drumRotation += drumSpeed;
+        drum.setAttribute("rotation", `0 ${drumRotation} 0`);
+      }
+
+      if (lidPivot) {
+        currentLidAngle += (targetLidAngle - currentLidAngle) * 0.08;
+        lidPivot.setAttribute("rotation", `${currentLidAngle} 0 0`);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
